@@ -4,15 +4,21 @@ import SwiftUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
+    private var popover: NSPopover?
     private var mainWindow: NSWindow?
     private var diskTimer: Timer?
+    private var eventMonitor: Any?
     private let monitor = SystemMonitor()
     private var cachedDiskInfo: DiskSpaceInfo = .zero
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
+        setupPopover()
         startDiskMonitor()
+        setupEventMonitor()
     }
+
+    // MARK: - Menubar
 
     private func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -25,30 +31,65 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    // MARK: - Popover
+
+    private func setupPopover() {
+        let popover = NSPopover()
+        popover.behavior = .transient
+        popover.animates = true
+        popover.contentSize = NSSize(width: 300, height: 320)
+        popover.contentViewController = NSHostingController(
+            rootView: PopoverView { [weak self] in
+                self?.closePopoverAndOpenWindow()
+            }
+        )
+        self.popover = popover
+    }
+
     @objc private func handleClick() {
         guard let event = NSApp.currentEvent else { return }
 
         if event.type == .rightMouseUp {
             showContextMenu()
         } else {
-            toggleMainWindow()
+            togglePopover()
+        }
+    }
+
+    private func togglePopover() {
+        guard let popover, let button = statusItem?.button else { return }
+
+        if popover.isShown {
+            popover.performClose(nil)
+        } else {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
+    private func closePopoverAndOpenWindow() {
+        popover?.performClose(nil)
+        openMainWindow()
+    }
+
+    // MARK: - Event Monitor (click outside closes popover)
+
+    private func setupEventMonitor() {
+        eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            Task { @MainActor in
+                if let popover = self?.popover, popover.isShown {
+                    popover.performClose(nil)
+                }
+            }
         }
     }
 
     // MARK: - Main Window
 
-    private func toggleMainWindow() {
-        if let window = mainWindow, window.isVisible {
-            window.close()
-        } else {
-            openMainWindow()
-        }
-    }
-
     private func openMainWindow() {
         if mainWindow == nil {
             let window = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 800, height: 560),
+                contentRect: NSRect(x: 0, y: 0, width: 820, height: 560),
                 styleMask: [.titled, .closable, .miniaturizable, .resizable],
                 backing: .buffered,
                 defer: false
@@ -57,14 +98,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.titlebarAppearsTransparent = true
             window.titleVisibility = .hidden
             window.isReleasedWhenClosed = false
-            window.minSize = NSSize(width: 650, height: 450)
+            window.minSize = NSSize(width: 680, height: 480)
             window.contentView = NSHostingView(rootView: MainView())
             window.center()
-
-            // Vibrancy
             window.isOpaque = false
             window.backgroundColor = .clear
-
             mainWindow = window
         }
 
@@ -82,7 +120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: diskText, action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
 
-        let openItem = NSMenuItem(title: "DevCleaner Ac", action: #selector(openFromMenu), keyEquivalent: "o")
+        let openItem = NSMenuItem(title: "Tam Pencere Ac", action: #selector(openFromMenu), keyEquivalent: "o")
         openItem.target = self
         menu.addItem(openItem)
 
@@ -156,5 +194,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         button.attributedTitle = attrStr
+    }
+
+    deinit {
+        if let eventMonitor {
+            NSEvent.removeMonitor(eventMonitor)
+        }
     }
 }

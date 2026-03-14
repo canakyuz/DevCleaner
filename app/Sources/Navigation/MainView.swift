@@ -2,15 +2,16 @@ import SwiftUI
 
 struct MainView: View {
     @State private var selectedModule: AppModule = .dashboard
-    @State private var isHoveringModule: AppModule?
+    @State private var hoveringModule: AppModule?
 
     var body: some View {
-        NavigationSplitView {
+        HStack(spacing: 0) {
             sidebar
-        } detail: {
+            Divider()
             detailView
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .navigationSplitViewStyle(.balanced)
+        .background(.ultraThinMaterial)
     }
 
     // MARK: - Sidebar
@@ -20,7 +21,7 @@ struct MainView: View {
             // Logo
             HStack(spacing: 8) {
                 ZStack {
-                    Circle()
+                    RoundedRectangle(cornerRadius: 7)
                         .fill(
                             LinearGradient(
                                 colors: [.blue, .purple],
@@ -28,82 +29,79 @@ struct MainView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 28, height: 28)
+                        .frame(width: 26, height: 26)
                     Image(systemName: "paintbrush.fill")
-                        .font(.system(size: 13))
+                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                 }
                 Text("DevCleaner")
                     .font(.system(size: 14, weight: .bold))
             }
             .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 20)
 
-            // Module list
+            // Modules
             VStack(spacing: 2) {
                 ForEach(AppModule.allCases) { module in
-                    sidebarButton(module)
+                    sidebarItem(module)
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 10)
 
             Spacer()
 
-            // Version
             Text("v2.0")
                 .font(.system(size: 9))
                 .foregroundStyle(.quaternary)
-                .padding(.bottom, 8)
+                .padding(.bottom, 10)
         }
-        .frame(minWidth: 170, maxWidth: 200)
+        .frame(width: 180)
+        .background(Color.primary.opacity(0.02))
     }
 
-    private func sidebarButton(_ module: AppModule) -> some View {
-        Button {
+    private func sidebarItem(_ module: AppModule) -> some View {
+        let isSelected = selectedModule == module
+        let isHovering = hoveringModule == module
+
+        return Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 selectedModule = module
             }
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: module.icon)
-                    .font(.system(size: 12))
-                    .foregroundStyle(selectedModule == module ? .white : .secondary)
-                    .frame(width: 20)
+                    .font(.system(size: 11))
+                    .foregroundStyle(isSelected ? .white : .secondary)
+                    .frame(width: 18)
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(module.rawValue)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(selectedModule == module ? .white : .primary)
+                        .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                        .foregroundStyle(isSelected ? .white : .primary)
 
                     Text(module.subtitle)
                         .font(.system(size: 9))
-                        .foregroundStyle(selectedModule == module ? .white.opacity(0.7) : .secondary.opacity(0.6))
+                        .foregroundStyle(isSelected ? .white.opacity(0.7) : .secondary)
                 }
 
                 Spacer()
             }
             .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.vertical, 7)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(
-                        selectedModule == module
-                            ? LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing)
-                            : LinearGradient(
-                                colors: isHoveringModule == module
-                                    ? [Color.primary.opacity(0.05)]
-                                    : [.clear],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                        isSelected
+                            ? AnyShapeStyle(LinearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                            : AnyShapeStyle(Color.primary.opacity(isHovering ? 0.06 : 0))
                     )
             )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .onHover { hovering in
-            isHoveringModule = hovering ? module : nil
+            hoveringModule = hovering ? module : nil
         }
     }
 

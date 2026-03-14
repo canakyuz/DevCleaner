@@ -5,24 +5,27 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 // Gauges row
-                HStack(spacing: 20) {
+                HStack(spacing: 32) {
                     CircularGauge(
                         value: vm.diskInfo.usedPercent / 100,
                         label: "Disk",
                         detail: "\(ByteFormatter.format(vm.diskInfo.freeBytes)) bos",
-                        gradient: diskColors
+                        gradient: diskColors,
+                        size: 100
                     )
 
                     CircularGauge(
                         value: vm.memoryInfo.usedPercent / 100,
                         label: "RAM",
                         detail: "\(ByteFormatter.format(vm.memoryInfo.free)) bos",
-                        gradient: ramColors
+                        gradient: ramColors,
+                        size: 100
                     )
                 }
-                .padding(.top, 8)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 12)
 
                 // Disk bar
                 DiskUsageBar(
@@ -30,14 +33,13 @@ struct DashboardView: View {
                     free: vm.diskInfo.freeBytes,
                     purgable: vm.diskInfo.purgableBytes
                 )
-                .padding(.horizontal, 4)
 
-                // Quick stats
+                // Quick stats grid
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible()),
                     GridItem(.flexible()),
-                ], spacing: 8) {
+                ], spacing: 10) {
                     StatCard(
                         icon: "memorychip",
                         label: "Aktif RAM",
@@ -81,13 +83,11 @@ struct DashboardView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 4)
 
                 // History
                 if !vm.history.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionHeader(title: "Son Temizlikler", icon: "clock")
-                            .padding(.horizontal, -12)
 
                         ForEach(vm.history.prefix(3), id: \.date) { record in
                             HStack {
@@ -99,12 +99,11 @@ struct DashboardView: View {
                                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
                                     .foregroundStyle(.green)
                             }
-                            .padding(.horizontal, 4)
                         }
                     }
                 }
             }
-            .padding(16)
+            .padding(20)
         }
         .task { await vm.refresh() }
     }
