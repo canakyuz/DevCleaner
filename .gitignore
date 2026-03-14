@@ -1,0 +1,16 @@
+# Build
+app/build/
+app/DevCleaner.xcodeproj/
+DerivedData/
+*.xcuserdata
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
