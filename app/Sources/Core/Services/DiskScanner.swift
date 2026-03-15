@@ -2,7 +2,7 @@ import Foundation
 
 actor DiskScanner {
     private let fileManager = FileManager.default
-    private let minBytes: Int64 = 1_048_576 // 1MB
+    private let minBytes: Int64 = 1_048_576
 
     struct DiskInfo {
         let totalBytes: Int64
@@ -10,8 +10,6 @@ actor DiskScanner {
         var usedBytes: Int64 { totalBytes - freeBytes }
         var usedPercent: Double { totalBytes > 0 ? Double(usedBytes) / Double(totalBytes) * 100 : 0 }
     }
-
-    // MARK: - Disk Info
 
     func getDiskInfo() -> DiskInfo {
         guard let attrs = try? fileManager.attributesOfFileSystem(forPath: "/") else {
@@ -46,8 +44,6 @@ actor DiskScanner {
         }
     }
 
-    // MARK: - Single Target Scan
-
     private func scanTarget(_ target: CleanupTarget) -> Int64 {
         switch target.type {
         case .directory:
@@ -59,29 +55,19 @@ actor DiskScanner {
         }
     }
 
-    // MARK: - Directory Size (FileManager, fast)
+    // MARK: - Directory Size
 
     func directorySize(at path: String) -> Int64 {
-        let url = URL(fileURLWithPath: path)
         guard fileManager.fileExists(atPath: path) else { return 0 }
+        let url = URL(fileURLWithPath: path)
 
-        // Try fast method first: allocated size from volume
-        if let size = fastDirectorySize(url) {
-            return size
-        }
-
-        // Fallback: enumerate
-        return enumeratedSize(url)
-    }
-
-    private func fastDirectorySize(_ url: URL) -> Int64? {
         let keys: Set<URLResourceKey> = [.totalFileAllocatedSizeKey, .isRegularFileKey]
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: Array(keys),
-            options: [.skipsHiddenFiles],
+            options: [],
             errorHandler: nil
-        ) else { return nil }
+        ) else { return 0 }
 
         var total: Int64 = 0
         for case let fileURL as URL in enumerator {
@@ -89,19 +75,6 @@ actor DiskScanner {
                   values.isRegularFile == true,
                   let size = values.totalFileAllocatedSize else { continue }
             total += Int64(size)
-        }
-        return total
-    }
-
-    private func enumeratedSize(_ url: URL) -> Int64 {
-        guard let enumerator = fileManager.enumerator(atPath: url.path) else { return 0 }
-        var total: Int64 = 0
-        while let file = enumerator.nextObject() as? String {
-            let fullPath = url.appendingPathComponent(file).path
-            if let attrs = try? fileManager.attributesOfItem(atPath: fullPath),
-               let size = attrs[.size] as? Int64 {
-                total += size
-            }
         }
         return total
     }
@@ -133,28 +106,42 @@ actor DiskScanner {
         var totalStaleBytes: Int64
     }
 
-    func scanNodeModules(projectsDir: String, staleDays: Int = 7) -> NodeModulesResult {
+    func scanNodeModules(staleDays: Int = 7) -> NodeModulesResult {
         var result = NodeModulesResult(staleTargets: [], activeCount: 0, totalStaleBytes: 0)
-        let projectsURL = URL(fileURLWithPath: projectsDir)
+        let home = fileManager.homeDirectoryForCurrentUser.path
 
-        guard fileManager.fileExists(atPath: projectsDir) else { return result }
+        let searchDirs = [
+            "\(home)/Desktop/Projects",
+            "\(home)/Desktop",
+            "\(home)/Documents",
+            "\(home)/Developer",
+            "\(home)/dev",
+            "\(home)/code",
+            "\(home)/projects",
+            "\(home)/workspace",
+            "\(home)/src",
+        ]
 
-        let nmDirs = findNodeModules(in: projectsURL, maxDepth: 5)
         let now = Date()
         let staleThreshold = now.addingTimeInterval(-Double(staleDays * 86400))
 
-        for nmPath in nmDirs {
-            let projectDir = (nmPath as NSString).deletingLastPathComponent
-            let lastActivity = projectLastActivity(at: projectDir)
+        for dir in searchDirs {
+            guard fileManager.fileExists(atPath: dir) else { continue }
+            let nmDirs = findNodeModules(in: URL(fileURLWithPath: dir), maxDepth: 4)
 
-            if lastActivity < staleThreshold {
-                let size = directorySize(at: nmPath)
-                if size > minBytes {
-                    result.staleTargets.append((path: nmPath, sizeBytes: size))
-                    result.totalStaleBytes += size
+            for nmPath in nmDirs {
+                let projectDir = (nmPath as NSString).deletingLastPathComponent
+                let lastActivity = projectLastActivity(at: projectDir)
+
+                if lastActivity < staleThreshold {
+                    let size = directorySize(at: nmPath)
+                    if size > minBytes {
+                        result.staleTargets.append((path: nmPath, sizeBytes: size))
+                        result.totalStaleBytes += size
+                    }
+                } else {
+                    result.activeCount += 1
                 }
-            } else {
-                result.activeCount += 1
             }
         }
 
@@ -173,7 +160,7 @@ actor DiskScanner {
 
             if item == "node_modules" {
                 results.append(fullPath.path)
-            } else if item != ".git" && item != ".Trash" {
+            } else if ![".", ".git", ".Trash", "Library", ".cache"].contains(where: { item.hasPrefix($0) }) {
                 results += findNodeModules(in: fullPath, maxDepth: maxDepth, currentDepth: currentDepth + 1)
             }
         }
@@ -228,11 +215,75 @@ actor DiskScanner {
                   let modified = attrs[.modificationDate] as? Date,
                   modified < threshold else { continue }
 
-            let size = (attrs[.size] as? Int64) ?? 0
+            var isDir: ObjCBool = false
+            fileManager.fileExists(atPath: fullPath, isDirectory: &isDir)
+
+            let size: Int64
+            if isDir.boolValue {
+                size = directorySize(at: fullPath)
+            } else {
+                size = (attrs[.size] as? Int64) ?? 0
+            }
+
             result.files.append(fullPath)
             result.totalBytes += size
         }
 
         return result
+    }
+
+    // MARK: - Disk Map (top-level breakdown)
+
+    struct DiskMapEntry: Identifiable {
+        let id = UUID()
+        let name: String
+        let path: String
+        let sizeBytes: Int64
+        let color: String
+        var children: [DiskMapEntry]
+    }
+
+    func scanDiskMap() async -> [DiskMapEntry] {
+        let home = fileManager.homeDirectoryForCurrentUser.path
+
+        let dirs: [(String, String, String)] = [
+            ("Library", "\(home)/Library", "blue"),
+            ("Applications", "/Applications", "purple"),
+            ("Documents", "\(home)/Documents", "green"),
+            ("Desktop", "\(home)/Desktop", "orange"),
+            ("Downloads", "\(home)/Downloads", "cyan"),
+            ("Movies", "\(home)/Movies", "red"),
+            ("Music", "\(home)/Music", "pink"),
+            ("Pictures", "\(home)/Pictures", "yellow"),
+            ("Developer", "\(home)/Developer", "indigo"),
+        ]
+
+        var entries: [DiskMapEntry] = []
+        for (name, path, color) in dirs {
+            guard fileManager.fileExists(atPath: path) else { continue }
+            let size = directorySize(at: path)
+            guard size > 10_485_760 else { continue }
+            let children = scanDiskMapChildren(at: path, color: color, maxChildren: 8)
+            entries.append(DiskMapEntry(name: name, path: path, sizeBytes: size, color: color, children: children))
+        }
+
+        return entries.sorted { $0.sizeBytes > $1.sizeBytes }
+    }
+
+    private func scanDiskMapChildren(at path: String, color: String, maxChildren: Int) -> [DiskMapEntry] {
+        guard let contents = try? fileManager.contentsOfDirectory(atPath: path) else { return [] }
+
+        var children: [DiskMapEntry] = []
+        for item in contents {
+            let fullPath = (path as NSString).appendingPathComponent(item)
+            var isDir: ObjCBool = false
+            guard fileManager.fileExists(atPath: fullPath, isDirectory: &isDir), isDir.boolValue else { continue }
+            let size = directorySize(at: fullPath)
+            if size > 10_485_760 {
+                children.append(DiskMapEntry(name: item, path: fullPath, sizeBytes: size, color: color, children: []))
+            }
+        }
+
+        return Array(children.sorted { $0.sizeBytes > $1.sizeBytes }.prefix(maxChildren))
     }
 }

@@ -114,10 +114,14 @@ struct MainView: View {
             DashboardView()
         case .smartClean:
             SmartCleanView()
+        case .diskMap:
+            DiskMapView()
         case .largeFiles:
             LargeFilesView()
         case .appManager:
             AppManagerView()
+        case .startup:
+            StartupView()
         case .ram:
             RAMView()
         }

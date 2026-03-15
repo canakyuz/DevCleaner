@@ -66,6 +66,10 @@ final class SmartCleanViewModel: ObservableObject {
         return total
     }
 
+    var categoryCount: Int {
+        filteredGroupedTargets.count
+    }
+
     func scan() async {
         isScanning = true
         scanProgress = 0
@@ -74,8 +78,7 @@ final class SmartCleanViewModel: ObservableObject {
         targets = await scanner.scanAll(CategoryRegistry.allTargets())
         scanProgress = 0.7
 
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let nmResult = await scanner.scanNodeModules(projectsDir: "\(home)/Desktop/Projects")
+        let nmResult = await scanner.scanNodeModules(staleDays: 7)
         nmPaths = nmResult.staleTargets.map(\.path)
         nmTotalBytes = nmResult.totalStaleBytes
         nmActiveCount = nmResult.activeCount
@@ -105,7 +108,6 @@ final class SmartCleanViewModel: ObservableObject {
                 targets[i].isSelected = true
             }
             if nmTotalBytes > 0 { nmSelected = true }
-            if oldDownloadsBytes > 0 { oldDownloadsSelected = true }
         }
     }
 

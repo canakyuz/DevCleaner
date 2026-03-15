@@ -175,8 +175,10 @@ struct AppInfo: Identifiable {
 enum AppModule: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
     case smartClean = "Akilli Temizlik"
+    case diskMap = "Disk Haritasi"
     case largeFiles = "Buyuk Dosyalar"
     case appManager = "Uygulamalar"
+    case startup = "Startup"
     case ram = "RAM"
 
     var id: String { rawValue }
@@ -185,8 +187,10 @@ enum AppModule: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard:  return "gauge.with.dots.needle.50percent"
         case .smartClean: return "paintbrush.fill"
-        case .largeFiles: return "chart.bar.doc.horizontal"
+        case .diskMap:    return "chart.pie.fill"
+        case .largeFiles: return "doc.text.magnifyingglass"
         case .appManager: return "square.grid.2x2"
+        case .startup:    return "bolt.fill"
         case .ram:        return "memorychip"
         }
     }
@@ -195,8 +199,10 @@ enum AppModule: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard:  return "Sistem Ozeti"
         case .smartClean: return "Cache & Dev Temizligi"
+        case .diskMap:    return "Disk Kullanim Haritasi"
         case .largeFiles: return "Buyuk Dosya Bulucu"
         case .appManager: return "Uygulama Yonetici"
+        case .startup:    return "Login & Launch Agents"
         case .ram:        return "Bellek Optimizasyonu"
         }
     }
