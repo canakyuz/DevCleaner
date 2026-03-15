@@ -11,7 +11,8 @@ struct MainView: View {
             detailView
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .background(.ultraThinMaterial)
+        .background(Color(red: 0.11, green: 0.11, blue: 0.14))
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Sidebar
@@ -57,7 +58,7 @@ struct MainView: View {
                 .padding(.bottom, 10)
         }
         .frame(width: 180)
-        .background(Color.primary.opacity(0.02))
+        .background(Color(red: 0.09, green: 0.09, blue: 0.12))
     }
 
     private func sidebarItem(_ module: AppModule) -> some View {
@@ -122,6 +123,8 @@ struct MainView: View {
             AppManagerView()
         case .startup:
             StartupView()
+        case .network:
+            NetworkView()
         case .ram:
             RAMView()
         }

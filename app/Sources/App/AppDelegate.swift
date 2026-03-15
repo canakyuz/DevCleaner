@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var eventMonitor: Any?
     private let monitor = SystemMonitor()
     private var cachedDiskInfo: DiskSpaceInfo = .zero
+    private var cachedPortCount: Int = 0
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setupMenuBar()
@@ -37,12 +38,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let popover = NSPopover()
         popover.behavior = .transient
         popover.animates = true
-        popover.contentSize = NSSize(width: 300, height: 320)
-        popover.contentViewController = NSHostingController(
+        popover.contentSize = NSSize(width: 300, height: 360)
+        let hostingController = NSHostingController(
             rootView: PopoverView { [weak self] in
                 self?.closePopoverAndOpenWindow()
             }
+            .preferredColorScheme(.dark)
         )
+        popover.contentViewController = hostingController
         self.popover = popover
     }
 
@@ -101,8 +104,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.minSize = NSSize(width: 680, height: 480)
             window.contentView = NSHostingView(rootView: MainView())
             window.center()
-            window.isOpaque = false
-            window.backgroundColor = .clear
+            window.isOpaque = true
+            window.backgroundColor = NSColor(red: 0.11, green: 0.11, blue: 0.14, alpha: 1.0)
+            window.appearance = NSAppearance(named: .darkAqua)
             mainWindow = window
         }
 
@@ -118,6 +122,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let freeGB = Double(cachedDiskInfo.freeBytes) / 1_073_741_824
         let diskText = String(format: "Disk: %.1f GB bos", freeGB)
         menu.addItem(NSMenuItem(title: diskText, action: nil, keyEquivalent: ""))
+
+        let portText = "Network: \(cachedPortCount) aktif port"
+        menu.addItem(NSMenuItem(title: portText, action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
 
         let openItem = NSMenuItem(title: "Tam Pencere Ac", action: #selector(openFromMenu), keyEquivalent: "o")
@@ -157,6 +164,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func updateDiskDisplay() {
         Task {
             cachedDiskInfo = await monitor.getDiskInfo()
+            cachedPortCount = await Task.detached {
+                NetworkScanner.scanPorts().count
+            }.value
             if let button = statusItem?.button {
                 updateMenuBarDisplay(button: button)
             }
@@ -191,6 +201,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 string: sizeText,
                 attributes: [.font: font, .foregroundColor: color]
             ))
+
+            if cachedPortCount > 0 {
+                let portFont = NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .regular)
+                attrStr.append(NSAttributedString(
+                    string: " \(cachedPortCount)P",
+                    attributes: [.font: portFont, .foregroundColor: NSColor.systemCyan]
+                ))
+            }
         }
 
         button.attributedTitle = attrStr

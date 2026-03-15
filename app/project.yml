@@ -27,8 +27,10 @@ targets:
     sources:
       - path: Sources
         type: group
-    resources:
       - path: Resources/Assets.xcassets
+        type: file
+        buildPhase: resources
+    resources:
       - path: Resources/Info.plist
         buildPhase: none
       - path: Resources/DevCleaner.entitlements

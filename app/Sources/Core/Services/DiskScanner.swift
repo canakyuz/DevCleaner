@@ -20,6 +20,38 @@ actor DiskScanner {
         return DiskInfo(totalBytes: total, freeBytes: free)
     }
 
+    // MARK: - Fast Directory Size (du -sk)
+
+    func directorySize(at path: String) -> Int64 {
+        guard fileManager.fileExists(atPath: path) else { return 0 }
+        return duSize(path)
+    }
+
+    private func duSize(_ path: String) -> Int64 {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/du")
+        process.arguments = ["-sk", path]
+
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = FileHandle.nullDevice
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            return 0
+        }
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        guard let output = String(data: data, encoding: .utf8) else { return 0 }
+
+        // du -sk outputs "SIZE\tPATH\n"
+        let parts = output.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: "\t")
+        guard let kb = Int64(parts.first ?? "0") else { return 0 }
+        return kb * 1024
+    }
+
     // MARK: - Parallel Scan
 
     func scanAll(_ targets: [CleanupTarget]) async -> [CleanupTarget] {
@@ -53,30 +85,6 @@ actor DiskScanner {
         case .custom:
             return 0
         }
-    }
-
-    // MARK: - Directory Size
-
-    func directorySize(at path: String) -> Int64 {
-        guard fileManager.fileExists(atPath: path) else { return 0 }
-        let url = URL(fileURLWithPath: path)
-
-        let keys: Set<URLResourceKey> = [.totalFileAllocatedSizeKey, .isRegularFileKey]
-        guard let enumerator = fileManager.enumerator(
-            at: url,
-            includingPropertiesForKeys: Array(keys),
-            options: [],
-            errorHandler: nil
-        ) else { return 0 }
-
-        var total: Int64 = 0
-        for case let fileURL as URL in enumerator {
-            guard let values = try? fileURL.resourceValues(forKeys: keys),
-                  values.isRegularFile == true,
-                  let size = values.totalFileAllocatedSize else { continue }
-            total += Int64(size)
-        }
-        return total
     }
 
     // MARK: - Glob Size
@@ -232,7 +240,7 @@ actor DiskScanner {
         return result
     }
 
-    // MARK: - Disk Map (top-level breakdown)
+    // MARK: - Disk Map
 
     struct DiskMapEntry: Identifiable {
         let id = UUID()

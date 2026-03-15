@@ -66,6 +66,40 @@ struct PopoverView: View {
                     detail: "\(ByteFormatter.format(vm.memoryInfo.free)) bos",
                     color: ramColor
                 )
+
+                // Network
+                HStack {
+                    HStack(spacing: 6) {
+                        Image(systemName: "network")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.cyan)
+                            .frame(width: 14)
+                        Text("Network")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 10) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "circle.fill")
+                                .font(.system(size: 5))
+                                .foregroundStyle(vm.portCount > 0 ? .green : .secondary)
+                            Text("\(vm.portCount) port")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        HStack(spacing: 3) {
+                            Image(systemName: "lock.fill")
+                                .font(.system(size: 8))
+                                .foregroundStyle(vm.sshCount > 0 ? .orange : .secondary)
+                            Text("\(vm.sshCount) SSH")
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -265,6 +299,8 @@ struct PopoverActionButton: View {
 final class PopoverViewModel: ObservableObject {
     @Published var diskInfo: DiskSpaceInfo = .zero
     @Published var memoryInfo: MemoryInfo = .zero
+    @Published var portCount: Int = 0
+    @Published var sshCount: Int = 0
     @Published var isOptimizing = false
     @Published var lastResult: String?
 
@@ -273,6 +309,11 @@ final class PopoverViewModel: ObservableObject {
     func refresh() async {
         diskInfo = await monitor.getDiskInfo()
         memoryInfo = await monitor.getMemoryInfo()
+        let (ports, ssh) = await Task.detached {
+            (NetworkScanner.scanPorts().count, NetworkScanner.scanSSH().count)
+        }.value
+        portCount = ports
+        sshCount = ssh
     }
 
     func optimizeRAM() async {

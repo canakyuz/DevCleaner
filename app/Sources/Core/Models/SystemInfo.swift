@@ -179,6 +179,7 @@ enum AppModule: String, CaseIterable, Identifiable {
     case largeFiles = "Buyuk Dosyalar"
     case appManager = "Uygulamalar"
     case startup = "Startup"
+    case network = "Network"
     case ram = "RAM"
 
     var id: String { rawValue }
@@ -191,6 +192,7 @@ enum AppModule: String, CaseIterable, Identifiable {
         case .largeFiles: return "doc.text.magnifyingglass"
         case .appManager: return "square.grid.2x2"
         case .startup:    return "bolt.fill"
+        case .network:    return "network"
         case .ram:        return "memorychip"
         }
     }
@@ -203,6 +205,7 @@ enum AppModule: String, CaseIterable, Identifiable {
         case .largeFiles: return "Buyuk Dosya Bulucu"
         case .appManager: return "Uygulama Yonetici"
         case .startup:    return "Login & Launch Agents"
+        case .network:    return "Port & SSH Izleyici"
         case .ram:        return "Bellek Optimizasyonu"
         }
     }
