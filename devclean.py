@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-# Renkli Çıktılar için
+# Terminal colours
 class Colors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -22,15 +22,15 @@ class DevCleanerCLI:
         self.dry_run = dry_run
         self.verbose = verbose
         self.total_freed_space = 0
-        
+
     def log(self, message, color=Colors.OKBLUE):
         print(f"{color}{message}{Colors.ENDC}")
 
     def error(self, message):
-        print(f"{Colors.FAIL}[HATA] {message}{Colors.ENDC}")
+        print(f"{Colors.FAIL}[ERROR] {message}{Colors.ENDC}")
 
     def warn(self, message):
-        print(f"{Colors.WARNING}[UYARI] {message}{Colors.ENDC}")
+        print(f"{Colors.WARNING}[WARNING] {message}{Colors.ENDC}")
 
     def get_size(self, path):
         total_size = 0
@@ -55,8 +55,9 @@ class DevCleanerCLI:
 
     # --- MODULE 1: CACHE CLEANER ---
     def clean_caches(self):
-        self.log(f"\n🚀 Cache Temizliği Başlatılıyor... (Mod: {'SİMÜLASYON' if self.dry_run else 'GERÇEK'})", Colors.HEADER)
-        
+        mode = 'DRY RUN' if self.dry_run else 'LIVE'
+        self.log(f"\n🚀 Starting cache cleanup... (mode: {mode})", Colors.HEADER)
+
         cache_paths = [
             # Xcode
             "~/Library/Developer/Xcode/DerivedData",
@@ -85,49 +86,50 @@ class DevCleanerCLI:
             if path.exists():
                 size = self.get_size(path)
                 if size > 0:
-                    self.log(f"Tespit edildi: {raw_path} ({self.format_bytes(size)})")
+                    self.log(f"Found: {raw_path} ({self.format_bytes(size)})")
                     if not self.dry_run:
                         try:
-                            # Sadece içeriği sil, ana klasörü koru (bazı uygulamalar çökebilir)
+                            # Remove the contents but recreate the directory itself:
+                            # some tools crash when their cache root disappears.
                             if path.is_dir():
                                 shutil.rmtree(path)
                                 os.makedirs(path, exist_ok=True)
                             else:
                                 os.remove(path)
-                            self.log(f"  ✅ Temizlendi: {raw_path}", Colors.OKGREEN)
+                            self.log(f"  ✅ Cleaned: {raw_path}", Colors.OKGREEN)
                             self.total_freed_space += size
                         except Exception as e:
-                            self.error(f"  ❌ Silinemedi: {e}")
+                            self.error(f"  ❌ Could not delete: {e}")
                 else:
-                    if self.verbose: self.log(f"Pas geçildi (Boş): {raw_path}", Colors.OKBLUE)
+                    if self.verbose: self.log(f"Skipped (empty): {raw_path}", Colors.OKBLUE)
             else:
-                if self.verbose: self.log(f"Bulunamadı: {raw_path}", Colors.OKBLUE)
+                if self.verbose: self.log(f"Not found: {raw_path}", Colors.OKBLUE)
 
     # --- MODULE 2: JUNK REMOVER (Empty Dirs, .DS_Store, Broken Links) ---
     def clean_junk(self, target_dir):
         target_path = Path(os.path.expanduser(target_dir))
-        self.log(f"\n🧹 Çöp Dosya ve Yapı Analizi: {target_path}", Colors.HEADER)
-        
+        self.log(f"\n🧹 Junk file and structure analysis: {target_path}", Colors.HEADER)
+
         if not target_path.exists():
-            self.error("Hedef klasör mevcut değil.")
+            self.error("Target directory does not exist.")
             return
 
-        # 1. .DS_Store Temizliği
-        self.log("--- .DS_Store Dosyaları ---")
+        # 1. .DS_Store cleanup
+        self.log("--- .DS_Store files ---")
         for root, dirs, files in os.walk(target_path):
             if ".DS_Store" in files:
                 file_path = os.path.join(root, ".DS_Store")
                 if not self.dry_run:
                     try:
                         os.remove(file_path)
-                        if self.verbose: self.log(f"  Silindi: {file_path}")
+                        if self.verbose: self.log(f"  Deleted: {file_path}")
                     except Exception as e:
-                        self.error(f"  Hata: {e}")
+                        self.error(f"  Error: {e}")
                 else:
-                    if self.verbose: self.log(f"  [Dry-Run] Silinecek: {file_path}")
+                    if self.verbose: self.log(f"  [Dry run] Would delete: {file_path}")
 
-        # 2. Boş Klasörler
-        self.log("--- Boş Klasörler ---")
+        # 2. Empty directories
+        self.log("--- Empty directories ---")
         # Bottom-up traverse is needed to remove nested empty folders
         for root, dirs, files in os.walk(target_path, topdown=False):
             for name in dirs:
@@ -136,21 +138,21 @@ class DevCleanerCLI:
                     if not os.listdir(full_path): # Check if empty
                         if not self.dry_run:
                             os.rmdir(full_path)
-                            self.log(f"  Silindi: {full_path}", Colors.OKGREEN)
+                            self.log(f"  Deleted: {full_path}", Colors.OKGREEN)
                         else:
-                            self.log(f"  [Dry-Run] Boş klasör: {full_path}")
+                            self.log(f"  [Dry run] Empty directory: {full_path}")
                 except Exception:
                     pass
 
     # --- MODULE 3: DUPLICATE FINDER ---
     def find_duplicates(self, target_dir):
         target_path = Path(os.path.expanduser(target_dir))
-        self.log(f"\n🔍 Tekrarlı Dosya Tespiti: {target_path}", Colors.HEADER)
-        
+        self.log(f"\n🔍 Duplicate file detection: {target_path}", Colors.HEADER)
+
         files_by_size = {}
-        
-        # Adım 1: Boyuta göre grupla (Hızlı eleme)
-        self.log("Dosyalar taranıyor...", Colors.WARNING)
+
+        # Step 1: group by size, which is a cheap way to eliminate most candidates.
+        self.log("Scanning files...", Colors.WARNING)
         for root, _, files in os.walk(target_path):
             for filename in files:
                 filepath = Path(root) / filename
@@ -158,7 +160,7 @@ class DevCleanerCLI:
                     continue
                 try:
                     size = filepath.stat().st_size
-                    if size < 1024: # 1KB altı dosyaları yoksay (genelde config vs)
+                    if size < 1024: # Ignore files under 1KB, usually config
                         continue
                     if size in files_by_size:
                         files_by_size[size].append(filepath)
@@ -167,15 +169,15 @@ class DevCleanerCLI:
                 except Exception:
                     pass
 
-        # Adım 2: Hash kontrolü (Sadece boyutu aynı olanlar için)
+        # Step 2: hash only the groups where sizes already collide.
         potential_dupes = {s: f for s, f in files_by_size.items() if len(f) > 1}
-        
+
         if not potential_dupes:
-            self.log("Tekrarlı dosya bulunamadı.", Colors.OKGREEN)
+            self.log("No duplicate files found.", Colors.OKGREEN)
             return
 
-        self.log(f"{len(potential_dupes)} adet potansiyel boyut grubu inceleniyor...", Colors.OKBLUE)
-        
+        self.log(f"Inspecting {len(potential_dupes)} candidate size groups...", Colors.OKBLUE)
+
         duplicates_found = 0
         wasted_space = 0
 
@@ -183,65 +185,64 @@ class DevCleanerCLI:
             hashes = {}
             for filepath in file_list:
                 try:
-                    # Performans için: Önce ilk 1024 byte'ı hashle
+                    # Only the first 4KB is hashed. On large files this is far
+                    # faster than a full read, but it means a match here is a
+                    # strong hint rather than proof: two files that share a size
+                    # and a 4KB header can still differ later on. That is why
+                    # nothing is deleted automatically below.
                     with open(filepath, 'rb') as f:
                         file_hash = hashlib.md5(f.read(4096)).hexdigest()
-                        # Çarpışma riski düşük ama tam kontrol için tam okuma eklenebilir
-                        # Büyük dosyalarda bu yöntem çok hız kazandırır.
-                    
+
                     if file_hash in hashes:
                         original = hashes[file_hash]
-                        self.warn(f"TEKRAR: {filepath.name}")
-                        print(f"   ∟ Orijinal: {original}")
-                        print(f"   ∟ Kopya:    {filepath}")
+                        self.warn(f"DUPLICATE: {filepath.name}")
+                        print(f"   ∟ Original: {original}")
+                        print(f"   ∟ Copy:     {filepath}")
                         duplicates_found += 1
                         wasted_space += size
-                        
-                        # Burada silme işlemi opsiyoneldir, kullanıcıya sormak en iyisi
-                        # Şimdilik sadece raporluyoruz.
                     else:
                         hashes[file_hash] = filepath
-                except Exception as e:
+                except Exception:
                     pass
-        
+
         if duplicates_found > 0:
-            self.log(f"\nToplam {duplicates_found} tekrar bulundu. Boşa giden alan: {self.format_bytes(wasted_space)}", Colors.FAIL)
-            self.log("Not: Tekrarlı dosyalar otomatik silinmez, manuel kontrol önerilir.", Colors.WARNING)
+            self.log(f"\nFound {duplicates_found} duplicates. Wasted space: {self.format_bytes(wasted_space)}", Colors.FAIL)
+            self.log("Note: duplicates are reported only, never deleted. Verify before removing anything.", Colors.WARNING)
 
 def main():
-    parser = argparse.ArgumentParser(description="DevCleaner: Geliştiriciler için Sistem Temizlik Aracı")
-    
+    parser = argparse.ArgumentParser(description="DevCleaner: system cleanup tool for developers")
+
     # Subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Komutlar")
-    
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+
     # 'cache' command
-    cmd_cache = subparsers.add_parser("cache", help="Geliştirici önbelleklerini temizle")
-    cmd_cache.add_argument("--force", action="store_true", help="Gerçekten sil (Varsayılan: Sadece göster)")
-    
+    cmd_cache = subparsers.add_parser("cache", help="Clean developer caches")
+    cmd_cache.add_argument("--force", action="store_true", help="Actually delete (default: preview only)")
+
     # 'junk' command
-    cmd_junk = subparsers.add_parser("junk", help="Gereksiz dosyaları (DS_Store, Boş Klasör) temizle")
-    cmd_junk.add_argument("--path", required=True, help="Taranacak klasör")
-    cmd_junk.add_argument("--force", action="store_true", help="Gerçekten sil")
+    cmd_junk = subparsers.add_parser("junk", help="Remove junk files (.DS_Store, empty directories)")
+    cmd_junk.add_argument("--path", required=True, help="Directory to scan")
+    cmd_junk.add_argument("--force", action="store_true", help="Actually delete")
 
     # 'dedup' command
-    cmd_dedup = subparsers.add_parser("dedup", help="Tekrarlı dosyaları bul")
-    cmd_dedup.add_argument("--path", required=True, help="Taranacak klasör")
+    cmd_dedup = subparsers.add_parser("dedup", help="Find duplicate files")
+    cmd_dedup.add_argument("--path", required=True, help="Directory to scan")
 
     args = parser.parse_args()
-    
+
     if args.command == "cache":
-        # Cache için force yoksa dry_run=True
+        # Without --force the cache command stays in dry run.
         tool = DevCleanerCLI(dry_run=not args.force, verbose=True)
         tool.clean_caches()
-        
+
     elif args.command == "junk":
         tool = DevCleanerCLI(dry_run=not args.force, verbose=True)
         tool.clean_junk(args.path)
-        
+
     elif args.command == "dedup":
         tool = DevCleanerCLI(dry_run=True, verbose=True)
         tool.find_duplicates(args.path)
-        
+
     else:
         parser.print_help()
 
