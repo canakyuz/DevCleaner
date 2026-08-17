@@ -7,7 +7,7 @@ struct StartupView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("\(vm.agents.count) login ogeleri")
+                Text("\(vm.agents.count) login items")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
 
@@ -34,7 +34,7 @@ struct StartupView: View {
             if vm.isScanning && vm.agents.isEmpty {
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Startup ogeleri taraniyor...")
+                    Text("Scanning startup items...")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
@@ -42,15 +42,15 @@ struct StartupView: View {
             } else if vm.agents.isEmpty {
                 EmptyState(
                     icon: "bolt.fill",
-                    title: "Startup ogeleri bulunamadi",
-                    subtitle: "Launch Agent ve Login Item bulunamadi"
+                    title: "No startup items found",
+                    subtitle: "No launch agents or login items found"
                 )
             } else {
                 ScrollView {
                     LazyVStack(spacing: 2) {
                         // User agents
                         if !vm.userAgents.isEmpty {
-                            SectionHeader(title: "Kullanici Launch Agents", icon: "person.fill", count: vm.userAgents.count)
+                            SectionHeader(title: "User Launch Agents", icon: "person.fill", count: vm.userAgents.count)
                             ForEach(vm.userAgents) { agent in
                                 StartupRow(agent: agent) {
                                     Task { await vm.toggleAgent(agent) }
@@ -62,7 +62,7 @@ struct StartupView: View {
 
                         // System agents
                         if !vm.systemAgents.isEmpty {
-                            SectionHeader(title: "Sistem Launch Agents", icon: "gearshape.fill", count: vm.systemAgents.count)
+                            SectionHeader(title: "System Launch Agents", icon: "gearshape.fill", count: vm.systemAgents.count)
                             ForEach(vm.systemAgents) { agent in
                                 StartupRow(agent: agent) {
                                     Task { await vm.toggleAgent(agent) }

@@ -120,20 +120,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
 
         let freeGB = Double(cachedDiskInfo.freeBytes) / 1_073_741_824
-        let diskText = String(format: "Disk: %.1f GB bos", freeGB)
+        let diskText = String(format: "Disk: %.1f GB free", freeGB)
         menu.addItem(NSMenuItem(title: diskText, action: nil, keyEquivalent: ""))
 
         let portText = "Network: \(cachedPortCount) aktif port"
         menu.addItem(NSMenuItem(title: portText, action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
 
-        let openItem = NSMenuItem(title: "Tam Pencere Ac", action: #selector(openFromMenu), keyEquivalent: "o")
+        let openItem = NSMenuItem(title: "Open Full Window", action: #selector(openFromMenu), keyEquivalent: "o")
         openItem.target = self
         menu.addItem(openItem)
 
         menu.addItem(.separator())
 
-        let quitItem = NSMenuItem(title: "Cikis", action: #selector(quitApp), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 

@@ -30,9 +30,9 @@ struct SmartCleanView: View {
 
                     Menu {
                         Button("Hepsini Sec") { vm.selectAll() }
-                        Button("Guvenli Sec (low risk)") { vm.selectLowRisk() }
+                        Button("Select Safe (low risk)") { vm.selectLowRisk() }
                         Divider()
-                        Button("Secimi Kaldir") { vm.deselectAll() }
+                        Button("Secimi Uninstall") { vm.deselectAll() }
                     } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                             .font(.system(size: 14))
@@ -87,7 +87,7 @@ struct SmartCleanView: View {
                                 .font(.system(size: 12, weight: .bold, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }
-                        Text("Taraniyor...")
+                        Text("Scanning...")
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
@@ -95,8 +95,8 @@ struct SmartCleanView: View {
                 } else if vm.availableTargets.isEmpty && vm.nmTotalBytes == 0 {
                     EmptyState(
                         icon: "checkmark.circle.fill",
-                        title: "Sistem temiz!",
-                        subtitle: "Temizlenecek cache bulunamadi"
+                        title: "System is clean",
+                        subtitle: "No caches to clean"
                     )
                 } else {
                     ScrollView {
@@ -123,7 +123,7 @@ struct SmartCleanView: View {
                             if vm.oldDownloadsBytes > 0 {
                                 SpecialTargetRow(
                                     icon: "arrow.down.circle",
-                                    label: "Eski Downloads",
+                                    label: "Old Downloads",
                                     detail: "\(vm.oldDownloadFiles.count) dosya, 30+ gun",
                                     bytes: vm.oldDownloadsBytes,
                                     maxBytes: vm.maxItemBytes,
@@ -168,7 +168,7 @@ struct SmartCleanView: View {
                             .font(.system(size: 11, weight: .medium))
                             .transition(.scale.combined(with: .opacity))
                         } else {
-                            Text("\(vm.selectedCount) secili")
+                            Text("\(vm.selectedCount) selected")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.secondary)
                         }
@@ -414,7 +414,7 @@ struct ConfirmationOverlay: View {
                 }
 
                 VStack(spacing: 4) {
-                    Text("Temizleme Onayi")
+                    Text("Confirm Cleanup")
                         .font(.system(size: 14, weight: .bold))
                     Text("\(selectedCount) oge, toplam \(ByteFormatter.format(selectedBytes)) silinecek.")
                         .font(.system(size: 12))
@@ -426,7 +426,7 @@ struct ConfirmationOverlay: View {
                     HStack(spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 10)).foregroundStyle(.orange)
-                        Text("\(mediumRiskCount) oge orta riskli")
+                        Text("\(mediumRiskCount) items are medium risk")
                             .font(.system(size: 10)).foregroundStyle(.orange)
                     }
                     .padding(.horizontal, 10)

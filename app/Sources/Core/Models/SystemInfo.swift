@@ -174,10 +174,10 @@ struct AppInfo: Identifiable {
 
 enum AppModule: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
-    case smartClean = "Akilli Temizlik"
-    case diskMap = "Disk Haritasi"
+    case smartClean = "Smart Clean"
+    case diskMap = "Disk Map"
     case largeFiles = "Buyuk Dosyalar"
-    case appManager = "Uygulamalar"
+    case appManager = "Applications"
     case startup = "Startup"
     case network = "Network"
     case ram = "RAM"
@@ -200,13 +200,13 @@ enum AppModule: String, CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .dashboard:  return "Sistem Ozeti"
-        case .smartClean: return "Cache & Dev Temizligi"
-        case .diskMap:    return "Disk Kullanim Haritasi"
+        case .smartClean: return "Cache & Dev Cleanup"
+        case .diskMap:    return "Disk Usage Map"
         case .largeFiles: return "Buyuk Dosya Bulucu"
-        case .appManager: return "Uygulama Yonetici"
+        case .appManager: return "App Manager"
         case .startup:    return "Login & Launch Agents"
         case .network:    return "Port & SSH Izleyici"
-        case .ram:        return "Bellek Optimizasyonu"
+        case .ram:        return "Memory Optimization"
         }
     }
 }

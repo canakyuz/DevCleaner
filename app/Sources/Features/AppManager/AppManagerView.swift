@@ -11,7 +11,7 @@ struct AppManagerView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 10))
                         .foregroundStyle(.tertiary)
-                    TextField("Uygulama ara...", text: $vm.searchText)
+                    TextField("Search apps...", text: $vm.searchText)
                         .font(.system(size: 11))
                         .textFieldStyle(.plain)
                 }
@@ -22,7 +22,7 @@ struct AppManagerView: View {
                 Spacer()
 
                 if !vm.apps.isEmpty {
-                    Text("\(vm.filteredApps.count) uygulama")
+                    Text("\(vm.filteredApps.count) apps")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
@@ -40,7 +40,7 @@ struct AppManagerView: View {
             if vm.isScanning && vm.apps.isEmpty {
                 VStack(spacing: 12) {
                     ProgressView()
-                    Text("Uygulamalar taraniyor...")
+                    Text("Scanning apps...")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
@@ -48,8 +48,8 @@ struct AppManagerView: View {
             } else if vm.filteredApps.isEmpty {
                 EmptyState(
                     icon: "square.grid.2x2",
-                    title: "Uygulama bulunamadi",
-                    subtitle: vm.searchText.isEmpty ? "Tarama devam ediyor..." : "Arama ile eslesme yok"
+                    title: "No apps found",
+                    subtitle: vm.searchText.isEmpty ? "Scan in progress..." : "Arama ile eslesme yok"
                 )
             } else {
                 List(vm.filteredApps) { app in
@@ -168,7 +168,7 @@ struct AppRow: View {
 
                         if app.cacheSize > 0 {
                             Button(action: onCleanCache) {
-                                Label("Cache Temizle", systemImage: "paintbrush")
+                                Label("Clean Cache", systemImage: "paintbrush")
                                     .font(.system(size: 10))
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 3)
@@ -179,7 +179,7 @@ struct AppRow: View {
                         }
 
                         Button(action: onUninstall) {
-                            Label("Kaldir", systemImage: "trash")
+                            Label("Uninstall", systemImage: "trash")
                                 .font(.system(size: 10))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)

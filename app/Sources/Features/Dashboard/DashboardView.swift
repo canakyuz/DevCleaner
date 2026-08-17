@@ -42,7 +42,7 @@ struct DashboardView: View {
                 ], spacing: 10) {
                     StatCard(
                         icon: "memorychip",
-                        label: "Aktif RAM",
+                        label: "Active RAM",
                         value: ByteFormatter.format(vm.memoryInfo.active),
                         color: .blue
                     )
@@ -66,7 +66,7 @@ struct DashboardView: View {
                         Circle()
                             .fill(pressureColor)
                             .frame(width: 8, height: 8)
-                        Text("Bellek Basinci: \(vm.memoryInfo.pressure.rawValue)")
+                        Text("Memory Pressure: \(vm.memoryInfo.pressure.rawValue)")
                             .font(.system(size: 11, weight: .medium))
                     }
 
@@ -77,7 +77,7 @@ struct DashboardView: View {
                             Image(systemName: "sparkles")
                                 .font(.system(size: 10))
                                 .foregroundStyle(.green)
-                            Text("\(ByteFormatter.format(vm.cleanableBytes)) temizlenebilir")
+                            Text("\(ByteFormatter.format(vm.cleanableBytes)) reclaimable")
                                 .font(.system(size: 11))
                                 .foregroundStyle(.green)
                         }
@@ -87,7 +87,7 @@ struct DashboardView: View {
                 // History
                 if !vm.history.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
-                        SectionHeader(title: "Son Temizlikler", icon: "clock")
+                        SectionHeader(title: "Recent Cleanups", icon: "clock")
 
                         ForEach(vm.history.prefix(3), id: \.date) { record in
                             HStack {

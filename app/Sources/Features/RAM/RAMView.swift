@@ -9,7 +9,7 @@ struct RAMView: View {
                 // Main gauge
                 CircularGauge(
                     value: vm.memory.usedPercent / 100,
-                    label: "RAM Kullanimi",
+                    label: "RAM Usage",
                     detail: "\(ByteFormatter.format(vm.memory.free)) bos",
                     gradient: gaugeColors,
                     size: 100
@@ -18,7 +18,7 @@ struct RAMView: View {
 
                 // Memory breakdown
                 VStack(spacing: 2) {
-                    memoryRow("Uygulama Bellegi", bytes: vm.memory.appMemory, color: .blue)
+                    memoryRow("App Memory", bytes: vm.memory.appMemory, color: .blue)
                     memoryRow("Wired (Sistem)", bytes: vm.memory.wired, color: .orange)
                     memoryRow("Compressed", bytes: vm.memory.compressed, color: .purple)
                     memoryRow("Free", bytes: vm.memory.free, color: .green)
@@ -32,7 +32,7 @@ struct RAMView: View {
                     HStack(spacing: 1) {
                         barSegment(
                             width: geo.size.width * Double(vm.memory.active) / total,
-                            color: .blue, label: "Aktif"
+                            color: .blue, label: "Active"
                         )
                         barSegment(
                             width: geo.size.width * Double(vm.memory.wired) / total,
@@ -55,7 +55,7 @@ struct RAMView: View {
 
                 // Legend
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 4) {
-                    legendItem("Aktif", color: .blue)
+                    legendItem("Active", color: .blue)
                     legendItem("Wired", color: .orange)
                     legendItem("Compressed", color: .purple)
                     legendItem("Inactive", color: .yellow)
@@ -77,7 +77,7 @@ struct RAMView: View {
                                 Image(systemName: "bolt.fill")
                                     .font(.system(size: 12))
                             }
-                            Text(vm.isOptimizing ? "Optimize ediliyor..." : "RAM Optimize Et")
+                            Text(vm.isOptimizing ? "Optimizing..." : "Optimize RAM Et")
                                 .font(.system(size: 13, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
@@ -178,11 +178,11 @@ final class RAMViewModel: ObservableObject {
             let freed = try await monitor.purgeRAM()
             await refresh()
             withAnimation(.spring(duration: 0.5)) {
-                resultMessage = "\(ByteFormatter.format(freed)) bellek serbest birakildi"
+                resultMessage = "\(ByteFormatter.format(freed)) of memory released"
             }
         } catch {
             withAnimation {
-                resultMessage = "Optimizasyon basarisiz (admin yetkisi gerekebilir)"
+                resultMessage = "Optimization failed (admin yetkisi gerekebilir)"
             }
         }
 

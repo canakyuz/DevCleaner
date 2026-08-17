@@ -39,7 +39,7 @@ struct PopoverView: View {
                         .background(Color.primary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
                 }
                 .buttonStyle(.plain)
-                .help("Tam pencere ac")
+                .help("Open full window")
             }
             .padding(.horizontal, 16)
             .padding(.top, 14)
@@ -110,8 +110,8 @@ struct PopoverView: View {
             VStack(spacing: 6) {
                 PopoverActionButton(
                     icon: "paintbrush.fill",
-                    label: "Akilli Temizlik",
-                    subtitle: "Cache ve dev dosyalarini tara",
+                    label: "Smart Clean",
+                    subtitle: "Scan caches and dev files",
                     color: .blue
                 ) {
                     onOpenWindow()
@@ -119,8 +119,8 @@ struct PopoverView: View {
 
                 PopoverActionButton(
                     icon: "bolt.fill",
-                    label: "RAM Optimize",
-                    subtitle: vm.isOptimizing ? "Optimize ediliyor..." : "Bellek bosalt",
+                    label: "Optimize RAM",
+                    subtitle: vm.isOptimizing ? "Optimizing..." : "Free up memory",
                     color: .green,
                     isLoading: vm.isOptimizing
                 ) {
@@ -146,7 +146,7 @@ struct PopoverView: View {
                 Button {
                     NSApp.terminate(nil)
                 } label: {
-                    Text("Cikis")
+                    Text("Quit")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }
@@ -325,12 +325,12 @@ final class PopoverViewModel: ObservableObject {
             memoryInfo = await monitor.getMemoryInfo()
 
             if freed > 0 {
-                lastResult = "\(ByteFormatter.format(Int64(freed))) bosaltildi"
+                lastResult = "\(ByteFormatter.format(Int64(freed))) freed"
             } else {
-                lastResult = "Bellek zaten optimize"
+                lastResult = "Memory is already optimized"
             }
         } catch {
-            lastResult = "Optimizasyon basarisiz"
+            lastResult = "Optimization failed"
         }
 
         isOptimizing = false

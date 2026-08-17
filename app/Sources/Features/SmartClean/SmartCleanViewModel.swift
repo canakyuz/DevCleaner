@@ -103,7 +103,7 @@ final class SmartCleanViewModel: ObservableObject {
 
     func selectLowRisk() {
         withAnimation(.easeInOut(duration: 0.2)) {
-            deselectAllSilent()
+            deselectAllDeleteent()
             for i in targets.indices where targets[i].isAvailable && targets[i].risk == .low {
                 targets[i].isSelected = true
             }
@@ -112,10 +112,10 @@ final class SmartCleanViewModel: ObservableObject {
     }
 
     func deselectAll() {
-        withAnimation(.easeInOut(duration: 0.2)) { deselectAllSilent() }
+        withAnimation(.easeInOut(duration: 0.2)) { deselectAllDeleteent() }
     }
 
-    private func deselectAllSilent() {
+    private func deselectAllDeleteent() {
         for i in targets.indices { targets[i].isSelected = false }
         nmSelected = false
         oldDownloadsSelected = false
@@ -184,7 +184,7 @@ final class SmartCleanViewModel: ObservableObject {
         await cleaner.saveRecord(record)
 
         withAnimation(.spring(duration: 0.5)) {
-            lastCleanedMessage = "\(ByteFormatter.format(totalFreed)) temizlendi!"
+            lastCleanedMessage = "\(ByteFormatter.format(totalFreed)) reclaimed"
         }
 
         isCleaning = false

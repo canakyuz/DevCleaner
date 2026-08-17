@@ -19,7 +19,7 @@ struct DiskMapView: View {
                 if vm.isScanning {
                     HStack(spacing: 6) {
                         ProgressView().controlSize(.small)
-                        Text("Taraniyor...")
+                        Text("Scanning...")
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     }
@@ -43,8 +43,8 @@ struct DiskMapView: View {
             if vm.entries.isEmpty && !vm.isScanning {
                 EmptyState(
                     icon: "chart.bar.doc.horizontal",
-                    title: "Disk Haritasi",
-                    subtitle: "Disk kullanimini gormek icin taramayi baslatin"
+                    title: "Disk Map",
+                    subtitle: "Start a scan to see disk usage"
                 )
             } else {
                 ScrollView {

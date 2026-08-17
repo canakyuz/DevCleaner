@@ -38,7 +38,7 @@ struct LargeFilesView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 10))
-                        Text("Tara")
+                        Text("Scan")
                             .font(.system(size: 11, weight: .medium))
                     }
                     .padding(.horizontal, 10)
@@ -58,7 +58,7 @@ struct LargeFilesView: View {
                 VStack(spacing: 12) {
                     ProgressView()
                         .controlSize(.regular)
-                    Text("Buyuk dosyalar araniyor...")
+                    Text("Searching for large files...")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
@@ -66,8 +66,8 @@ struct LargeFilesView: View {
             } else if vm.files.isEmpty {
                 EmptyState(
                     icon: "doc.questionmark",
-                    title: "Tarama baslatilmadi",
-                    subtitle: "Buyuk dosyalari bulmak icin 'Tara' butonuna tiklayin"
+                    title: "No scan yet",
+                    subtitle: "Click Scan to find large files"
                 )
             } else {
                 // File list
@@ -89,7 +89,7 @@ struct LargeFilesView: View {
             if vm.selectedCount > 0 {
                 Divider()
                 HStack {
-                    Text("\(vm.selectedCount) secili - \(ByteFormatter.format(vm.selectedBytes))")
+                    Text("\(vm.selectedCount) selected - \(ByteFormatter.format(vm.selectedBytes))")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
 
@@ -101,7 +101,7 @@ struct LargeFilesView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "trash.fill")
                                 .font(.system(size: 10))
-                            Text("Sil")
+                            Text("Delete")
                                 .font(.system(size: 11, weight: .semibold))
                         }
                         .padding(.horizontal, 14)

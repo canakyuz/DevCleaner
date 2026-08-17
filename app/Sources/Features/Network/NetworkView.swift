@@ -9,7 +9,7 @@ struct NetworkView: View {
             HStack {
                 HStack(spacing: 12) {
                     Picker("", selection: $vm.selectedTab) {
-                        Text("Portlar").tag(NetworkTab.ports)
+                        Text("Ports").tag(NetworkTab.ports)
                         Text("SSH").tag(NetworkTab.ssh)
                     }
                     .pickerStyle(.segmented)
@@ -54,8 +54,8 @@ struct NetworkView: View {
             if vm.ports.isEmpty && !vm.isScanning {
                 EmptyState(
                     icon: "network",
-                    title: "Aktif port bulunamadi",
-                    subtitle: "Dinleyen port yok"
+                    title: "No active ports found",
+                    subtitle: "No listening ports"
                 )
             } else {
                 ScrollView {
@@ -68,7 +68,7 @@ struct NetworkView: View {
                                 .frame(width: 60, alignment: .leading)
                             Text("PROCESS")
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            Text("PROTOKOL")
+                            Text("PROTOCOL")
                                 .frame(width: 60, alignment: .trailing)
                         }
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
@@ -95,8 +95,8 @@ struct NetworkView: View {
             if vm.sshConnections.isEmpty && !vm.isScanning {
                 EmptyState(
                     icon: "lock.shield",
-                    title: "Aktif SSH baglantisi yok",
-                    subtitle: "SSH baglantisi bulunamadi"
+                    title: "No active SSH connections",
+                    subtitle: "No SSH connections found"
                 )
             } else {
                 ScrollView {
@@ -168,7 +168,7 @@ struct PortRow: View {
             }
             .buttonStyle(.plain)
             .opacity(isHovered ? 1 : 0)
-            .help("Process'i sonlandir (PID: \(port.pid))")
+            .help("Kill process (PID: \(port.pid))")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 5)
