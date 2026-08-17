@@ -21,7 +21,7 @@ struct RAMView: View {
                     memoryRow("Uygulama Bellegi", bytes: vm.memory.appMemory, color: .blue)
                     memoryRow("Wired (Sistem)", bytes: vm.memory.wired, color: .orange)
                     memoryRow("Compressed", bytes: vm.memory.compressed, color: .purple)
-                    memoryRow("Bos", bytes: vm.memory.free, color: .green)
+                    memoryRow("Free", bytes: vm.memory.free, color: .green)
                 }
                 .padding(12)
                 .background(Color.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 10))
@@ -59,7 +59,7 @@ struct RAMView: View {
                     legendItem("Wired", color: .orange)
                     legendItem("Compressed", color: .purple)
                     legendItem("Inactive", color: .yellow)
-                    legendItem("Bos", color: .green)
+                    legendItem("Free", color: .green)
                 }
 
                 Divider()

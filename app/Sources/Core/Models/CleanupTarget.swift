@@ -91,9 +91,9 @@ enum Risk: String, Comparable {
 
     var label: String {
         switch self {
-        case .low:    return "Guvenli"
-        case .medium: return "Dikkatli"
-        case .high:   return "Riskli"
+        case .low:    return "Safe"
+        case .medium: return "Caution"
+        case .high:   return "Risky"
         }
     }
 

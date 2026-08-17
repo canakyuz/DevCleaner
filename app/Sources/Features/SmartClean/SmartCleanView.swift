@@ -187,7 +187,7 @@ struct SmartCleanView: View {
                                 } else {
                                     Image(systemName: "trash.fill").font(.system(size: 10))
                                 }
-                                Text(vm.isCleaning ? "Temizleniyor..." : "Temizle")
+                                Text(vm.isCleaning ? "Cleaning..." : "Clean")
                                     .font(.system(size: 11, weight: .semibold))
                             }
                             .padding(.horizontal, 14)
@@ -436,7 +436,7 @@ struct ConfirmationOverlay: View {
 
                 HStack(spacing: 10) {
                     Button(action: onCancel) {
-                        Text("Iptal")
+                        Text("Cancel")
                             .font(.system(size: 12, weight: .medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -445,7 +445,7 @@ struct ConfirmationOverlay: View {
                     .buttonStyle(.plain)
 
                     Button(action: onConfirm) {
-                        Text("Temizle")
+                        Text("Clean")
                             .font(.system(size: 12, weight: .semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
