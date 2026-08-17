@@ -90,7 +90,9 @@ Risk levels are `Safe`, `Caution` and `Risky`. **Select all** picks everything; 
 
 **Network.** Live throughput, also surfaced in the menubar.
 
-**Menubar.** Free disk space at a glance, colour coded. Left click opens the window, right click gives quick actions.
+**Menubar.** The common case never needs the main window. Free disk space sits in the bar, colour coded. Left click opens a 300pt popover with live disk and RAM gauges, and one button that runs the whole loop in place: scan, see how much is reclaimable, clean, see how much came back. Right click gives a plain menu with the same quick actions.
+
+The popover only ever cleans `Safe` targets, meaning caches the owning tool regenerates on its own. `Caution` and `Risky` items are deliberately not reachable from the menubar; they need the full window where the path and the size are in front of you before you delete anything. That boundary is the point of the split, not a limitation of the popover.
 
 ## How it works
 
@@ -103,6 +105,8 @@ Risk levels are `Safe`, `Caution` and `Risky`. **Select all** picks everything; 
 **The app is not sandboxed.** Reading and deleting caches across the whole home directory is the entire point, and the sandbox forbids it.
 
 **Deletion goes through Trash where it can.** App uninstall moves the bundle and its leftovers to Trash rather than unlinking them, so a mistake is recoverable.
+
+**A failed target does not abort the run.** Quick clean walks its target list and skips anything that throws, so one locked cache cannot strand the other hundred.
 
 ## CLI
 

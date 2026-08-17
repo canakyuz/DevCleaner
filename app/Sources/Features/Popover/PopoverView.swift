@@ -108,13 +108,62 @@ struct PopoverView: View {
 
             // Quick actions
             VStack(spacing: 6) {
-                PopoverActionButton(
-                    icon: "paintbrush.fill",
-                    label: "Smart Clean",
-                    subtitle: "Scan caches and dev files",
-                    color: .blue
-                ) {
-                    onOpenWindow()
+                switch vm.quickState {
+                case .idle:
+                    PopoverActionButton(
+                        icon: "paintbrush.fill",
+                        label: "Smart Clean",
+                        subtitle: "Scan caches and dev files",
+                        color: .blue
+                    ) {
+                        Task { await vm.scanSafe() }
+                    }
+
+                case .scanning:
+                    PopoverActionButton(
+                        icon: "paintbrush.fill",
+                        label: "Scanning...",
+                        subtitle: "Measuring 101 targets",
+                        color: .blue,
+                        isLoading: true
+                    ) {}
+
+                case let .ready(bytes, count):
+                    PopoverActionButton(
+                        icon: "trash.fill",
+                        label: "Clean \(ByteFormatter.format(bytes))",
+                        subtitle: "\(count) safe items, nothing risky",
+                        color: .blue
+                    ) {
+                        Task { await vm.cleanSafe() }
+                    }
+
+                case .cleaning:
+                    PopoverActionButton(
+                        icon: "trash.fill",
+                        label: "Cleaning...",
+                        subtitle: "Removing safe caches",
+                        color: .blue,
+                        isLoading: true
+                    ) {}
+
+                case .empty:
+                    PopoverActionButton(
+                        icon: "checkmark.circle.fill",
+                        label: "Nothing to clean",
+                        subtitle: "No safe caches are taking space",
+                        color: .green
+                    ) {}
+
+                case let .done(bytes):
+                    PopoverActionButton(
+                        icon: "checkmark.circle.fill",
+                        label: "\(ByteFormatter.format(bytes)) reclaimed",
+                        subtitle: "Open the window for deeper cleanup",
+                        color: .green
+                    ) {
+                        onOpenWindow()
+                    }
                 }
 
                 PopoverActionButton(
@@ -293,6 +342,17 @@ struct PopoverActionButton: View {
     }
 }
 
+// MARK: - Quick Clean State
+
+enum QuickCleanState: Equatable {
+    case idle
+    case scanning
+    case ready(bytes: Int64, count: Int)
+    case empty
+    case cleaning
+    case done(bytes: Int64)
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -304,7 +364,18 @@ final class PopoverViewModel: ObservableObject {
     @Published var isOptimizing = false
     @Published var lastResult: String?
 
+    // Quick clean runs entirely from the menubar. It only ever touches Safe
+    // targets: anything the owning tool transparently regenerates. Caution and
+    // Risky items stay behind the full window, where the path and the size are
+    // visible before you commit to deleting them.
+    @Published var quickState: QuickCleanState = .idle
+    @Published var safeTargets: [CleanupTarget] = []
+
+    var safeBytes: Int64 { safeTargets.reduce(0) { $0 + $1.sizeBytes } }
+
     private let monitor = SystemMonitor()
+    private let scanner = DiskScanner()
+    private let cleaner = CleanupService()
 
     func refresh() async {
         diskInfo = await monitor.getDiskInfo()
@@ -314,6 +385,51 @@ final class PopoverViewModel: ObservableObject {
         }.value
         portCount = ports
         sshCount = ssh
+    }
+
+    /// Scans every registered target, then keeps only the Safe ones that
+    /// actually hold bytes. Sizing is the slow part, so it runs off the main
+    /// actor through the same TaskGroup the full window uses.
+    func scanSafe() async {
+        quickState = .scanning
+
+        let scanned = await scanner.scanAll(CategoryRegistry.allTargets())
+        safeTargets = scanned.filter { $0.risk == .low && $0.sizeBytes > 0 }
+
+        if safeTargets.isEmpty {
+            quickState = .empty
+            try? await Task.sleep(for: .seconds(3))
+            if quickState == .empty { quickState = .idle }
+        } else {
+            quickState = .ready(bytes: safeBytes, count: safeTargets.count)
+        }
+    }
+
+    /// Deletes the scanned Safe set. A target that fails is skipped rather than
+    /// aborting the run, so one locked cache cannot strand the rest.
+    func cleanSafe() async {
+        guard !safeTargets.isEmpty else { return }
+        quickState = .cleaning
+
+        var freed: Int64 = 0
+        for target in safeTargets {
+            freed += (try? await cleaner.cleanTarget(target)) ?? 0
+        }
+
+        await cleaner.saveRecord(
+            CleanupService.CleanupRecord(
+                date: Date(),
+                freedBytes: freed,
+                items: safeTargets.map(\.label)
+            )
+        )
+
+        safeTargets = []
+        diskInfo = await monitor.getDiskInfo()
+        quickState = .done(bytes: freed)
+
+        try? await Task.sleep(for: .seconds(4))
+        quickState = .idle
     }
 
     func optimizeRAM() async {
