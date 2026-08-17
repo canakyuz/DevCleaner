@@ -11,7 +11,7 @@ struct DashboardView: View {
                     CircularGauge(
                         value: vm.diskInfo.usedPercent / 100,
                         label: "Disk",
-                        detail: "\(ByteFormatter.format(vm.diskInfo.freeBytes)) bos",
+                        detail: "\(ByteFormatter.format(vm.diskInfo.freeBytes)) free",
                         gradient: diskColors,
                         size: 100
                     )
@@ -19,7 +19,7 @@ struct DashboardView: View {
                     CircularGauge(
                         value: vm.memoryInfo.usedPercent / 100,
                         label: "RAM",
-                        detail: "\(ByteFormatter.format(vm.memoryInfo.free)) bos",
+                        detail: "\(ByteFormatter.format(vm.memoryInfo.free)) free",
                         gradient: ramColors,
                         size: 100
                     )

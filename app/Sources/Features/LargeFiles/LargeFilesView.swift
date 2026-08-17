@@ -27,7 +27,7 @@ struct LargeFilesView: View {
                 Spacer()
 
                 if !vm.files.isEmpty {
-                    Text("\(vm.files.count) dosya, \(ByteFormatter.format(vm.totalBytes))")
+                    Text("\(vm.files.count) files, \(ByteFormatter.format(vm.totalBytes))")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 }

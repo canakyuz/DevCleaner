@@ -10,7 +10,7 @@ struct RAMView: View {
                 CircularGauge(
                     value: vm.memory.usedPercent / 100,
                     label: "RAM Usage",
-                    detail: "\(ByteFormatter.format(vm.memory.free)) bos",
+                    detail: "\(ByteFormatter.format(vm.memory.free)) free",
                     gradient: gaugeColors,
                     size: 100
                 )

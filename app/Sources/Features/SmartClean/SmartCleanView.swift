@@ -106,7 +106,7 @@ struct SmartCleanView: View {
                                 SpecialTargetRow(
                                     icon: "folder.fill",
                                     label: "node_modules",
-                                    detail: "\(vm.nmPaths.count) eski, \(vm.nmActiveCount) aktif korundu",
+                                    detail: "\(vm.nmPaths.count) stale, \(vm.nmActiveCount) active kept",
                                     bytes: vm.nmTotalBytes,
                                     maxBytes: vm.maxItemBytes,
                                     risk: .low,
@@ -124,7 +124,7 @@ struct SmartCleanView: View {
                                 SpecialTargetRow(
                                     icon: "arrow.down.circle",
                                     label: "Old Downloads",
-                                    detail: "\(vm.oldDownloadFiles.count) dosya, 30+ gun",
+                                    detail: "\(vm.oldDownloadFiles.count) files, 30+ days",
                                     bytes: vm.oldDownloadsBytes,
                                     maxBytes: vm.maxItemBytes,
                                     risk: .medium,
@@ -416,7 +416,7 @@ struct ConfirmationOverlay: View {
                 VStack(spacing: 4) {
                     Text("Confirm Cleanup")
                         .font(.system(size: 14, weight: .bold))
-                    Text("\(selectedCount) oge, toplam \(ByteFormatter.format(selectedBytes)) silinecek.")
+                    Text("\(selectedCount) items totalling \(ByteFormatter.format(selectedBytes)) will be deleted.")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

@@ -9,7 +9,7 @@ struct DiskMapView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
                     if vm.totalSize > 0 {
-                        Text("Toplam: \(ByteFormatter.format(vm.totalSize))")
+                        Text("Total: \(ByteFormatter.format(vm.totalSize))")
                             .font(.system(size: 11, weight: .semibold, design: .monospaced))
                     }
                 }

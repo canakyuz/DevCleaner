@@ -123,7 +123,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let diskText = String(format: "Disk: %.1f GB free", freeGB)
         menu.addItem(NSMenuItem(title: diskText, action: nil, keyEquivalent: ""))
 
-        let portText = "Network: \(cachedPortCount) aktif port"
+        let portText = "Network: \(cachedPortCount) active ports"
         menu.addItem(NSMenuItem(title: portText, action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
 

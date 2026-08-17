@@ -54,7 +54,7 @@ struct PopoverView: View {
                     icon: "internaldrive",
                     label: "Disk",
                     value: vm.diskInfo.usedPercent / 100,
-                    detail: "\(ByteFormatter.format(vm.diskInfo.freeBytes)) bos",
+                    detail: "\(ByteFormatter.format(vm.diskInfo.freeBytes)) free",
                     color: diskColor
                 )
 
@@ -63,7 +63,7 @@ struct PopoverView: View {
                     icon: "memorychip",
                     label: "RAM",
                     value: vm.memoryInfo.usedPercent / 100,
-                    detail: "\(ByteFormatter.format(vm.memoryInfo.free)) bos",
+                    detail: "\(ByteFormatter.format(vm.memoryInfo.free)) free",
                     color: ramColor
                 )
 
@@ -85,7 +85,7 @@ struct PopoverView: View {
                             Image(systemName: "circle.fill")
                                 .font(.system(size: 5))
                                 .foregroundStyle(vm.portCount > 0 ? .green : .secondary)
-                            Text("\(vm.portCount) port")
+                            Text("\(vm.portCount) ports")
                                 .font(.system(size: 10, design: .monospaced))
                                 .foregroundStyle(.secondary)
                         }

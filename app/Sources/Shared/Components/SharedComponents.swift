@@ -187,7 +187,7 @@ struct DiskUsageBar: View {
 
                 Spacer()
 
-                Text("\(ByteFormatter.format(free)) bos / \(ByteFormatter.format(total))")
+                Text("\(ByteFormatter.format(free)) free / \(ByteFormatter.format(total))")
                     .font(.system(size: 10, weight: .medium, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
