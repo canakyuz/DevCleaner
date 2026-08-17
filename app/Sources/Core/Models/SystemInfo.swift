@@ -34,8 +34,8 @@ struct MemoryInfo {
 
 enum MemoryPressure: String {
     case nominal = "Normal"
-    case warning = "Yuksek"
-    case critical = "Kritik"
+    case warning = "High"
+    case critical = "Critical"
 }
 
 // MARK: - Disk Info (extended)
@@ -79,12 +79,12 @@ struct LargeFile: Identifiable, Hashable {
 
 enum FileType: String {
     case video = "Video"
-    case image = "Gorsel"
-    case archive = "Arsiv"
+    case image = "Image"
+    case archive = "Archive"
     case diskImage = "Disk Image"
     case binary = "Binary"
-    case document = "Belge"
-    case other = "Diger"
+    case document = "Document"
+    case other = "Other"
 
     var icon: String {
         switch self {
@@ -176,7 +176,7 @@ enum AppModule: String, CaseIterable, Identifiable {
     case dashboard = "Dashboard"
     case smartClean = "Smart Clean"
     case diskMap = "Disk Map"
-    case largeFiles = "Buyuk Dosyalar"
+    case largeFiles = "Large Files"
     case appManager = "Applications"
     case startup = "Startup"
     case network = "Network"
@@ -199,13 +199,13 @@ enum AppModule: String, CaseIterable, Identifiable {
 
     var subtitle: String {
         switch self {
-        case .dashboard:  return "Sistem Ozeti"
+        case .dashboard:  return "System Summary"
         case .smartClean: return "Cache & Dev Cleanup"
         case .diskMap:    return "Disk Usage Map"
-        case .largeFiles: return "Buyuk Dosya Bulucu"
+        case .largeFiles: return "Large File Finder"
         case .appManager: return "App Manager"
         case .startup:    return "Login & Launch Agents"
-        case .network:    return "Port & SSH Izleyici"
+        case .network:    return "Port & SSH Monitor"
         case .ram:        return "Memory Optimization"
         }
     }

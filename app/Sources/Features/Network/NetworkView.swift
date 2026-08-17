@@ -219,7 +219,7 @@ struct SSHRow: View {
                 }
 
                 HStack(spacing: 8) {
-                    Text(connection.isOutgoing ? "Giden" : "Gelen")
+                    Text(connection.isOutgoing ? "Outbound" : "Inbound")
                         .font(.system(size: 9, weight: .medium))
                         .foregroundStyle(connection.isOutgoing ? .green : .blue)
 

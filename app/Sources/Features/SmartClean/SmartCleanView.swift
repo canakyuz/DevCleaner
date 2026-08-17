@@ -12,7 +12,7 @@ struct SmartCleanView: View {
                         Image(systemName: "magnifyingglass")
                             .font(.system(size: 10))
                             .foregroundStyle(.tertiary)
-                        TextField("Ara...", text: $vm.searchText)
+                        TextField("Search...", text: $vm.searchText)
                             .font(.system(size: 11))
                             .textFieldStyle(.plain)
                     }
@@ -29,10 +29,10 @@ struct SmartCleanView: View {
                     }
 
                     Menu {
-                        Button("Hepsini Sec") { vm.selectAll() }
+                        Button("Select All") { vm.selectAll() }
                         Button("Select Safe (low risk)") { vm.selectLowRisk() }
                         Divider()
-                        Button("Secimi Uninstall") { vm.deselectAll() }
+                        Button("Uninstall Selected") { vm.deselectAll() }
                     } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                             .font(.system(size: 14))

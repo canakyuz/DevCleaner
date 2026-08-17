@@ -19,7 +19,7 @@ struct RAMView: View {
                 // Memory breakdown
                 VStack(spacing: 2) {
                     memoryRow("App Memory", bytes: vm.memory.appMemory, color: .blue)
-                    memoryRow("Wired (Sistem)", bytes: vm.memory.wired, color: .orange)
+                    memoryRow("Wired (System)", bytes: vm.memory.wired, color: .orange)
                     memoryRow("Compressed", bytes: vm.memory.compressed, color: .purple)
                     memoryRow("Free", bytes: vm.memory.free, color: .green)
                 }
@@ -77,7 +77,7 @@ struct RAMView: View {
                                 Image(systemName: "bolt.fill")
                                     .font(.system(size: 12))
                             }
-                            Text(vm.isOptimizing ? "Optimizing..." : "Optimize RAM Et")
+                            Text(vm.isOptimizing ? "Optimizing..." : "Optimize RAM")
                                 .font(.system(size: 13, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
@@ -107,7 +107,7 @@ struct RAMView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
 
-                    Text("Inaktif bellek ve dosya cache'lerini temizler.\nSistem gerektiginde otomatik olarak yeniden olusturur.")
+                    Text("Purges inactive memory and file caches.\nThe system rebuilds them automatically when needed.")
                         .font(.system(size: 9))
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
@@ -182,7 +182,7 @@ final class RAMViewModel: ObservableObject {
             }
         } catch {
             withAnimation {
-                resultMessage = "Optimization failed (admin yetkisi gerekebilir)"
+                resultMessage = "Optimization failed (may require admin privileges)"
             }
         }
 

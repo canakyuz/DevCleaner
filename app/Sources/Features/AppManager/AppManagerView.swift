@@ -49,7 +49,7 @@ struct AppManagerView: View {
                 EmptyState(
                     icon: "square.grid.2x2",
                     title: "No apps found",
-                    subtitle: vm.searchText.isEmpty ? "Scan in progress..." : "Arama ile eslesme yok"
+                    subtitle: vm.searchText.isEmpty ? "Scan in progress..." : "No matches for your search"
                 )
             } else {
                 List(vm.filteredApps) { app in
