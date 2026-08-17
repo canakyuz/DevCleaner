@@ -14,3 +14,6 @@ DerivedData/
 .env.*
 *.pem
 *.key
+
+# Release artifacts
+*.dmg
