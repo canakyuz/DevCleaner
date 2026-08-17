@@ -1,74 +1,41 @@
 # DevCleaner
 
-A native macOS menubar app for developers to reclaim disk space by cleaning caches, managing apps, optimizing RAM, and finding large files.
+[![build](https://github.com/canakyuz/DevCleaner/actions/workflows/build.yml/badge.svg)](https://github.com/canakyuz/DevCleaner/actions/workflows/build.yml)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![platform](https://img.shields.io/badge/macOS-14.0%2B-lightgrey.svg)](#requirements)
 
-Built with **Swift + SwiftUI**. No Electron. No web views. Pure native performance.
+A native macOS menubar app that reclaims disk space from developer tooling. It knows where Xcode, npm, Gradle, cargo, Docker and the AI CLIs hide their caches, shows you what each one costs, and lets you clear them with a risk label attached.
 
-## Features
+Built with Swift and SwiftUI. No Electron, no web views.
 
-### Dashboard
-- Real-time disk and RAM gauges
-- Memory pressure indicator
-- Cleanup history with stats
+## Screenshots
 
-### Smart Clean (90+ targets)
-- **Xcode**: DerivedData, Simulators, CocoaPods, SPM cache
-- **JS/Node**: npm, yarn, pnpm, bun, node_modules (age-based, active projects protected)
-- **AI/CLI**: Claude, Cursor, Copilot, Dia caches and versions
-- **IDE**: JetBrains, VSCode, Zed, nvim
-- **Terminal**: Warp, tabby
-- **Python**: pip, uv, mypy, ruff, prisma, pre-commit
-- **Java/Android**: Gradle, Maven, Android SDK, emulators, AVDs
-- **Rust/Go**: cargo, rustup, go mod/build cache
-- **DevTools**: Homebrew, Docker, Trunk, Expo, Terraform
-- **Browser**: Chrome, Edge, Safari, Firefox, Brave caches
-- **Apps**: Spotify, Slack, Zoom, Discord, Telegram caches
-- **System**: Trash, logs, crash reports, saved states
+<!--
+TODO: add real captures before the first release.
+Suggested set, 2x Retina, light and dark:
+  docs/screenshots/dashboard.png     Dashboard with disk and RAM gauges
+  docs/screenshots/smart-clean.png   Smart Clean grouped target list
+  docs/screenshots/disk-map.png      Disk Map treemap
+  docs/screenshots/menubar.png       Menubar popover
+-->
 
-Each target shows:
-- Size with proportional bar
-- Risk level (safe / caution)
-- Hover tooltip with full path
-- Group select/deselect
+_Not captured yet._
 
-### Large File Finder
-- Scans Downloads, Documents, Desktop, Movies, Library
-- Configurable minimum size (50MB - 1GB)
-- File type detection (video, image, archive, disk image, etc.)
-- Reveal in Finder
-- Bulk delete selected
+## Install
 
-### App Manager
-- Lists all installed apps with sizes
-- Breakdown: bundle size + cache + app data
-- Per-app cache cleaning
-- Full uninstall (app + leftover data moved to Trash)
-- Search and sort by size
+### Download
 
-### RAM Optimizer
-- Real-time memory breakdown (Active, Wired, Compressed, Inactive, Free)
-- Stacked visualization bar
-- Memory pressure indicator
-- One-click RAM optimization (purges inactive memory)
+Grab the latest `.dmg` from [Releases](https://github.com/canakyuz/DevCleaner/releases), drag `DevCleaner.app` into `/Applications`.
 
-### Menubar
-- Live disk free space display (color-coded)
-- Left click: open main window
-- Right click: quick actions menu
+The build is signed to run locally rather than notarized, so the first launch needs a right click on the app, then **Open**, then **Open** again in the dialog. macOS remembers the choice.
 
-## Requirements
-
-- macOS 14.0+
-- Xcode 15+ (for building)
-
-## Build
+### Build from source
 
 ```bash
-# Install XcodeGen (if not installed)
 brew install xcodegen
 
-# Generate project and build
-cd app
+git clone https://github.com/canakyuz/DevCleaner.git
+cd DevCleaner/app
 xcodegen generate
 xcodebuild -project DevCleaner.xcodeproj \
   -scheme DevCleaner \
@@ -76,55 +43,114 @@ xcodebuild -project DevCleaner.xcodeproj \
   -derivedDataPath build \
   build
 
-# Install
 cp -R build/Build/Products/Release/DevCleaner.app /Applications/
 ```
 
-Or use the setup script:
+`app/setup.sh` runs the same sequence.
+
+## What it cleans
+
+**101 targets across 15 groups.** Every target carries a real path, a measured size, and a risk level.
+
+| Group | Covers |
+|---|---|
+| Xcode | DerivedData, Archives, DeviceSupport, CoreSimulator, CocoaPods, Carthage, SwiftPM |
+| JS / Node | npm, yarn, pnpm, bun caches, `node_modules` by age with active projects protected |
+| AI / CLI | Claude, Cursor, Copilot, Dia caches and old versions |
+| IDE | JetBrains caches and logs, VSCode, Zed, nvim |
+| Terminal | Warp, tabby |
+| Python | pip, uv, mypy, ruff, prisma, pre-commit |
+| Java / Android | Gradle caches and wrappers, Maven, Android SDK, emulators, AVDs |
+| Ruby | bundler cache, gem cache |
+| Rust | cargo registry, cargo git, rustup toolchains |
+| Go | module cache, build cache |
+| DevTools | Homebrew, Docker, Trunk, Expo, Terraform |
+| Browser | Chrome, Edge, Safari, Firefox, Brave |
+| Apps | Spotify, Slack, Zoom, Discord, Telegram |
+| Downloads | stale installers and disk images |
+| System | Trash, user logs, crash reports, saved application state |
+
+Risk levels are `Safe`, `Caution` and `Risky`. **Select all** picks everything; **Select safe** picks only the `Safe` tier, which is the sensible default for an unattended clean.
+
+## Features
+
+**Dashboard.** Live disk and RAM gauges, memory pressure indicator, cleanup history with totals.
+
+**Smart Clean.** The 101 targets above, grouped and collapsible. Each row shows a proportional size bar, the risk badge, and the full path on hover. Select or deselect a whole group in one click.
+
+**Disk Map.** Treemap of what is actually taking the space, so you can find the offender before deciding what to delete.
+
+**Large File Finder.** Scans Downloads, Documents, Desktop, Movies and Library. Configurable floor from 50 MB to 1 GB, file type detection, reveal in Finder, bulk delete.
+
+**App Manager.** Every installed app with its real footprint broken into bundle, cache and app data. Clean an app's cache, or uninstall it with its leftovers moved to Trash.
+
+**RAM Optimizer.** Active, Wired, Compressed, Inactive and Free in a stacked bar, plus a one click purge of inactive memory.
+
+**Startup Manager.** Login items and launch agents, with the ability to disable them.
+
+**Network.** Live throughput, also surfaced in the menubar.
+
+**Menubar.** Free disk space at a glance, colour coded. Left click opens the window, right click gives quick actions.
+
+## How it works
+
+**Sizing shells out to `du -sk` on purpose.** `FileManager` directory enumeration walks every inode from userspace, which is slow on trees like `DerivedData` or `~/.gradle` that hold hundreds of thousands of small files. `du` does the same walk in one process with far less overhead. The trade is a `Process` spawn per target, which is why the next point matters.
+
+**Targets are scanned concurrently.** `scanAll` fans every target out through a Swift `TaskGroup` and collects results into a map keyed by target id, so total scan time is bounded by the slowest single target rather than their sum.
+
+**Services are actors.** Scanning and cleanup are thread safe by construction rather than by convention.
+
+**The app is not sandboxed.** Reading and deleting caches across the whole home directory is the entire point, and the sandbox forbids it.
+
+**Deletion goes through Trash where it can.** App uninstall moves the bundle and its leftovers to Trash rather than unlinking them, so a mistake is recoverable.
+
+## CLI
+
+A standalone bash script is included for terminal use, with no dependency on the app.
 
 ```bash
-cd app
-./setup.sh
-```
-
-## CLI Version
-
-A bash script (`cleanup.sh`) is also included for terminal usage:
-
-```bash
-./cleanup.sh                    # Interactive mode
-./cleanup.sh --dry-run          # Preview only
-./cleanup.sh --min-size 100M    # Filter by size
-./cleanup.sh --auto             # Clean everything
-./cleanup.sh --json-log         # Save cleanup log
+./cleanup.sh                 # interactive
+./cleanup.sh --dry-run       # preview only, deletes nothing
+./cleanup.sh --min-size 100M # ignore anything smaller
+./cleanup.sh --auto          # non interactive
+./cleanup.sh --json-log      # write a log of what was removed
 ```
 
 ## Architecture
 
 ```
-Sources/
-  App/                     # Entry point, menubar, window
+app/Sources/
+  App/                   Entry point, menubar, window lifecycle
   Core/
-    Models/                # CleanupTarget, AppInfo, SystemInfo
-    Services/              # DiskScanner, CleanupService, SystemMonitor,
-                           # AppManagerService, LargeFileScanner
+    Models/              CleanupTarget, CategoryRegistry, SystemInfo
+    Services/            DiskScanner, CleanupService, SystemMonitor,
+                         AppManagerService, LargeFileScanner
   Features/
-    Dashboard/             # System overview with gauges
-    SmartClean/            # Cache cleaner (90+ targets)
-    LargeFiles/            # Large file finder
-    AppManager/            # App uninstaller + cache cleaner
-    RAM/                   # Memory optimizer
-  Shared/
-    Components/            # Reusable UI (gauges, bars, badges)
-  Navigation/              # Sidebar + routing
+    Dashboard/           Gauges and system overview
+    SmartClean/          Target list, selection, cleanup
+    DiskMap/             Treemap
+    LargeFiles/          Large file finder
+    AppManager/          Uninstaller and per app cache cleaning
+    RAM/                 Memory breakdown and purge
+    Startup/             Login items and launch agents
+    Network/             Throughput
+    Popover/             Menubar popover
+  Shared/Components/     Gauges, bars, badges
+  Navigation/            Sidebar and routing
 ```
 
-Key design decisions:
-- **Parallel scanning**: All targets scanned concurrently via Swift `TaskGroup`
-- **Actor-based services**: Thread-safe scanning and cleanup
-- **FileManager native**: No shell commands for disk scanning
-- **No sandbox**: Full filesystem access (required for cleanup)
+Roughly 4,700 lines of Swift. The target list lives in one place, `CategoryRegistry.allTargets()`, so adding a cache means adding a line.
+
+## Requirements
+
+macOS 14.0 or later. Building additionally needs Xcode 15 or later and XcodeGen.
+
+## Contributing
+
+New cache targets are the most useful contribution. Add a `t(group, label, path, risk)` entry to `CategoryRegistry.allTargets()` in `app/Sources/Core/Models/CleanupTarget.swift`, and pick the risk level conservatively: `Safe` means the tool that owns it will transparently regenerate it.
+
+Bug reports should say which macOS version, which target, and what was expected.
 
 ## License
 
-MIT
+MIT. See [LICENSE](./LICENSE).
