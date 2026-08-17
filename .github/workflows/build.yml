@@ -1,0 +1,55 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (macOS)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: app
+        run: xcodegen generate
+
+      - name: Build Release
+        working-directory: app
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project DevCleaner.xcodeproj \
+            -scheme DevCleaner \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Verify the app bundle exists
+        working-directory: app
+        run: |
+          APP="build/Build/Products/Release/DevCleaner.app"
+          test -d "$APP" || { echo "::error::$APP was not produced"; exit 1; }
+          echo "Built $(du -sh "$APP" | cut -f1) bundle"
+
+      - name: Check for non-English UI strings
+        run: |
+          if grep -rnE '"(Guvenli|Dikkatli|Riskli|Temizle|Temizleniyor|Iptal|Bos|Ayarlar|Tumu|Secili)"' app/Sources; then
+            echo "::error::Turkish UI strings found. All user facing text must be English."
+            exit 1
+          fi
+          echo "UI strings are English."
